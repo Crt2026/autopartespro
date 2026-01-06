@@ -93,19 +93,11 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"mysql://{config('DB_USER', 'root')}:{config('DB_PASSWORD', '')}@{config('DB_HOST', 'localhost')}:{config('DB_PORT', '3306')}/{config('DB_NAME', 'autopartespro')}",
-        conn_max_age=600
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600,
+        ssl_require=False
     )
 }
-
-# Override engine for local MySQL usage (dj_database_url defaults to django.db.backends.mysql)
-if DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
-    DATABASES['default']['ENGINE'] = 'mysql.connector.django'
-    DATABASES['default']['OPTIONS'] = {
-        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        'charset': 'utf8mb4',
-        'use_pure': True,
-    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
