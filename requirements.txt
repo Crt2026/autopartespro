@@ -5,3 +5,8 @@ psycopg2-binary
 python-decouple
 dj-database-url
 django-jazzmin
+djangorestframework
+django-cors-headers
+django-filter
+drf-yasg
+mercadopago
