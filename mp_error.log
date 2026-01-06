@@ -1,0 +1,1 @@
+{'message': 'auto_return invalid. back_url.success must be defined', 'error': 'invalid_auto_return', 'status': 400, 'cause': None}

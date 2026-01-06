@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoPartes Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% verbatim %}
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            alert("Error Global: " + msg + "\nEn: " + line + ":" + col);
+            document.body.innerHTML += '<div style="color:red; padding:20px">Error: ' + msg + '</div>';
+        };
+    </script>
+</head>
+
+<body>
+    <div id="root">
+        <div
+            style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; color:#444;">
+            <div style="text-align:center">
+                <i class="fas fa-spinner fa-spin" style="font-size:40px; margin-bottom:20px;"></i>
+                <h2>Cargando AutoPartes Pro...</h2>
+                <p>Si esto no desaparece, hay un error de carga.</p>
+            </div>
+        </div>
+    </div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // 1. DEFINICIÓN DE COMPONENTES
+        const LayoutHeader = ({ onNavigate, currentView, cartItemCount, user }) => {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            return (
+                <header className="w-full bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+                    <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-2xl font-bold text-gray-900">AutoPartes Pro</h1>
+                            <nav className="hidden md:flex space-x-2">
+                                <button onClick={() => onNavigate('home')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'home' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Inicio
+                                </button>
+                                <button onClick={() => onNavigate('products')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'products' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Productos
+                                </button>
+                                <button onClick={() => onNavigate('about')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'about' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Nosotros
+                                </button>
+                                <button onClick={() => onNavigate('contact')}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'contact' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Contacto
+                                </button>
+                            </nav>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <button onClick={() => onNavigate('cart')}
+                                className="relative flex items-center justify-center p-2 sm:px-4 sm:py-2 rounded-full text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
+                                <i className="fas fa-shopping-cart text-lg sm:text-xl group-hover:animate-pulse"></i>
+                                <span className="hidden sm:inline-block ml-2 font-semibold text-sm">Carrito</span>
+                                {cartItemCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 sm:top-0 sm:right-0 sm:translate-x-1/2 sm:-translate-y-1/2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-bounce shadow-sm border border-white">
+                                        {cartItemCount}
+                                    </span>
+                                )}
+                            </button>
+                            {user ? (
+                                <button onClick={() => auth.signOut()}
+                                    className="hidden md:flex items-center px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 hover:text-gray-900 transition-colors duration-200 text-sm font-medium">
+                                    <i className="fas fa-sign-out-alt mr-2 text-gray-500"></i>
+                                    Salir
+                                </button>
+                            ) : (
+                                <button onClick={() => onNavigate('login')}
+                                    className="hidden md:flex items-center px-4 py-2 text-blue-600 border border-blue-600 rounded-lg shadow-sm hover:bg-blue-50 transition-colors duration-200 text-sm font-medium">
+                                    <i className="fas fa-user-circle mr-2 text-lg"></i>
+                                    Entrar
+                                </button>
+                            )}
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                                <i className="fas fa-bars text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {isMenuOpen && (
+                        <div className="md:hidden bg-white border-t border-gray-200 py-4">
+                            <nav className="container mx-auto px-4 space-y-2">
+                                <button onClick={() => { onNavigate('home'); setIsMenuOpen(false); }}
+                                    className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'home' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Inicio
+                                </button>
+                                <button onClick={() => { onNavigate('products'); setIsMenuOpen(false); }}
+                                    className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'products' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Productos
+                                </button>
+                                <button onClick={() => { onNavigate('about'); setIsMenuOpen(false); }}
+                                    className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'about' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Nosotros
+                                </button>
+                                <button onClick={() => { onNavigate('contact'); setIsMenuOpen(false); }}
+                                    className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-medium ${currentView === 'contact' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                    Contacto
+                                </button>
+                                {user ? (
+                                    <button onClick={() => { auth.signOut(); setIsMenuOpen(false); }}
+                                        className="block w-full text-left px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium">
+                                        <i className="fas fa-sign-out-alt mr-2"></i>
+                                        Cerrar Sesión
+                                    </button>
+                                ) : (
+                                    <button onClick={() => { onNavigate('login'); setIsMenuOpen(false); }}
+                                        className="block w-full text-left px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">
+                                        <i className="fas fa-sign-in-alt mr-2"></i>
+                                        Iniciar Sesión
+                                    </button>
+                                )}
+                            </nav>
+                        </div>
+                    )}
+                </header>
+            );
+        };
+
+        const HomeHeroSection = ({ onNavigate }) => (
+            <section className="relative bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20 md:py-32 overflow-hidden rounded-b-3xl shadow-lg">
+                <div className="container mx-auto px-4 text-center relative z-10">
+                    <h2 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
+                        Encuentra el Repuesto Perfecto para tu Auto
+                    </h2>
+                    <p className="text-xl md:text-2xl mb-8 opacity-90">
+                        Calidad garantizada, precios competitivos y entrega rápida
+                    </p>
+                    <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button
+                            onClick={() => onNavigate('products')}
+                            className="bg-white text-blue-700 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:bg-gray-100 transform hover:scale-105 transition-all duration-300"
+                        >
+                            Explorar Productos
+                        </button>
+                        <button
+                            onClick={() => onNavigate('contact')}
+                            className="border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-blue-700 transition-all duration-300"
+                        >
+                            Contactar Ahora
+                        </button>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const HomeFeatures = () => (
+            <section className="py-16 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">¿Por qué elegirnos?</h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto">
+                            Ofrecemos la mejor experiencia de compra con garantías y servicios excepcionales.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                            <div className="w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-3xl">
+                                <i className="fas fa-shield-alt"></i>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">Calidad Garantizada</h3>
+                            <p className="text-gray-600">Todos nuestros productos cuentan con garantía y certificación de calidad.</p>
+                        </div>
+                        <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                            <div className="w-16 h-16 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 text-3xl">
+                                <i className="fas fa-shipping-fast"></i>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">Envío Rápido</h3>
+                            <p className="text-gray-600">Entrega en 24-48 horas en la mayoría de las zonas. Servicio a domicilio disponible.</p>
+                        </div>
+                        <div className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                            <div className="w-16 h-16 mx-auto bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-4 text-3xl">
+                                <i className="fas fa-headset"></i>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">Soporte 24/7</h3>
+                            <p className="text-gray-600">Atención personalizada por WhatsApp. Resolvemos tus dudas al instante.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const AboutUs = () => (
+            <div className="container mx-auto px-4 py-12">
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Nosotros</h2>
+                    <div className="mb-8">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-3">Nuestra Historia</h3>
+                        <p className="text-gray-600 mb-4">
+                            AutoPartes Pro nació en 2010 con la misión de proveer repuestos de calidad para todo tipo de vehículos.
+                            Comenzamos como un pequeño taller mecánico y hoy somos líderes en distribución de autopartes en la región.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Contact = () => (
+            <div className="container mx-auto px-4 py-12">
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+                    <div className="p-8">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Contacto</h2>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4">Información de Contacto</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">Dirección:</h4>
+                                        <p className="text-gray-600">Avenida General San Martin 181 Vallegrande Lampa</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">Teléfono:</h4>
+                                        <p className="text-gray-600">+56992921908</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4">Contáctanos Directamente</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">Atención al Cliente:</h4>
+                                        <p className="text-gray-600">César Suárez</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">WhatsApp:</h4>
+                                        <a href="https://wa.me/56992921908"
+                                            className="text-blue-600 hover:text-blue-800"
+                                            target="_blank"
+                                            rel="noopener noreferrer">
+                                            +56 9 9292 1908
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // Shared Layout for Auth Pages
+        const AuthLayout = ({ children, title, subtitle, imageSrc, reverse = false }) => (
+            <div className="min-h-screen flex bg-white">
+                {/* Image Section - Hidden on mobile, 50% on desktop */}
+                <div className={`hidden lg:flex w-1/2 bg-gray-900 relative ${reverse ? 'order-2' : ''} overflow-hidden`}>
+                    <div className="absolute inset-0 bg-cover bg-center opacity-60 mix-blend-overlay" style={{ backgroundImage: `url(${imageSrc || '/static/imagenes/disponible-variedad.jpg'})` }}></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-black/50"></div>
+                    <div className="relative z-10 flex flex-col justify-center px-12 text-white">
+                        <h2 className="text-5xl font-extrabold mb-6 leading-tight">{title}</h2>
+                        <p className="text-xl text-blue-100/90 max-w-md">{subtitle}</p>
+                    </div>
+                    {/* Decorative Circles */}
+                    <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+                    <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+                </div>
+
+                {/* Form Section - Full width on mobile, 50% on desktop */}
+                <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-14 lg:px-24 xl:px-32 py-12 bg-white">
+                    {children}
+                </div>
+            </div>
+        );
+
+        // Componente Login
+        const Login = ({ onNavigate, onLogin }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+                try {
+                    const { user } = await auth.signInWithEmailAndPassword(email, password);
+                    if (user.emailVerified) {
+                        onLogin();
+                        onNavigate('home');
+                    } else {
+                        setError('Por favor, verifica tu correo antes de iniciar sesión.');
+                        await user.sendEmailVerification();
+                    }
+                } catch (err) {
+                    let mensaje = 'Correo o contraseña incorrectos';
+                    if (err.code === 'auth/user-not-found') mensaje = 'No existe una cuenta con este correo.';
+                    else if (err.code === 'auth/wrong-password') mensaje = 'Contraseña incorrecta.';
+                    else if (err.code === 'auth/invalid-email') mensaje = 'El correo no es válido.';
+                    setError(mensaje);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            return (
+                <AuthLayout
+                    title="Bienvenido de nuevo"
+                    subtitle="Accede para gestionar tus pedidos y encontrar los mejores repuestos."
+                    imageSrc="/static/imagenes/410201-PD391H-802.jpg"
+                >
+                    <div className="w-full max-w-md mx-auto">
+                        <div className="mb-10">
+                            <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-blue-600">
+                                <i className="fas fa-user text-2xl"></i>
+                            </div>
+                            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Iniciar Sesión</h2>
+                            <p className="mt-2 text-sm text-gray-600">
+                                ¿Nuevo aquí? <button onClick={() => onNavigate('register')} className="font-bold text-blue-600 hover:text-blue-800 transition-colors">Crear una cuenta gratis</button>
+                            </p>
+                        </div>
+
+                        {error && (
+                            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
+                                <div className="flex">
+                                    <div className="flex-shrink-0"><i className="fas fa-exclamation-circle text-red-500"></i></div>
+                                    <div className="ml-3"><p className="text-sm text-red-700">{error}</p></div>
+                                </div>
+                            </div>
+                        )}
+
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <i className="fas fa-envelope"></i>
+                                    </div>
+                                    <input
+                                        type="email"
+                                        required
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 sm:text-sm"
+                                        placeholder="nombre@empresa.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                                    <button type="button" onClick={() => onNavigate('forgot-password')} className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                        ¿Olvidaste tu contraseña?
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <i className="fas fa-lock"></i>
+                                    </div>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 sm:text-sm"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-0.5"
+                            >
+                                {loading ? <i className="fas fa-spinner fa-spin"></i> : "Acceder a mi cuenta"}
+                            </button>
+                        </form>
+                    </div>
+                </AuthLayout>
+            );
+        };
+
+        // Componente Register
+        const Register = ({ onNavigate, onLogin }) => {
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [passwordStrength, setPasswordStrength] = useState('');
+            const validatePassword = (pwd) => {
+                if (pwd.length < 6) return 'Débil';
+                if (pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) return 'Fuerte';
+                return 'Media';
+            };
+            const handlePasswordChange = (e) => {
+                const pwd = e.target.value;
+                setPassword(pwd);
+                setPasswordStrength(validatePassword(pwd));
+            };
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (password !== confirmPassword) {
+                    setError('Las contraseñas no coinciden');
+                    return;
+                }
+                if (passwordStrength === 'Débil') {
+                    setError('La contraseña es demasiado débil. Debe tener al menos 6 caracteres.');
+                    return;
+                }
+                setLoading(true);
+                try {
+                    const { user } = await auth.createUserWithEmailAndPassword(email, password);
+                    await user.sendEmailVerification();
+                    await db.collection('users').doc(user.uid).set({
+                        name,
+                        email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert(
+                        `¡Tu cuenta ha sido creada con éxito!\n\n` +
+                        `Te hemos enviado un correo a ${email} para que verifiques tu dirección.\n\n` +
+                        `Por favor revisa tu bandeja de entrada (y spam) y haz clic en el enlace.\n\n` +
+                        `No podrás iniciar sesión hasta que verifiques tu correo.`
+                    );
+                    onLogin();
+                    onNavigate('home');
+                } catch (err) {
+                    let mensaje = err.message;
+                    if (err.code === 'auth/email-already-in-use') {
+                        mensaje = 'Este correo ya está registrado. Por favor, inicia sesión.';
+                    } else if (err.code === 'auth/invalid-email') {
+                        mensaje = 'El correo no es válido.';
+                    } else if (err.code === 'auth/weak-password') {
+                        mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+                    }
+                    setError(mensaje);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            return (
+                <AuthLayout
+                    title="Únete a AutoPartes Pro"
+                    subtitle="Empieza a comprar con los mejores precios y garantía del mercado."
+                    imageSrc="/static/imagenes/kit-mantencion.jpg"
+                    reverse={true}
+                >
+                    <div className="w-full max-w-md mx-auto">
+                        <div className="mb-8">
+                            <div className="mx-auto h-16 w-16 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg transform transition-transform duration-500 hover:scale-110">
+                                <i className="fas fa-user-plus text-white text-2xl"></i>
+                            </div>
+                            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
+                                Crear Cuenta
+                            </h2>
+                            <p className="mt-2 text-center text-sm text-gray-600">
+                                Únete a <span className="font-bold text-blue-600">AutoPartes Pro</span> hoy
+                            </p>
+                        </div>
+                        {error && (
+                            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r shadow-sm" role="alert">
+                                <div className="flex">
+                                    <div className="py-1"><i className="fas fa-exclamation-circle mr-2"></i></div>
+                                    <div><p className="font-medium">Error</p><p className="text-sm">{error}</p></div>
+                                </div>
+                            </div>
+                        )}
+                        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+                            <div className="space-y-4">
+                                <div className="relative group">
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-hover:text-blue-600">
+                                        Nombre Completo
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="name"
+                                            name="name"
+                                            type="text"
+                                            autoComplete="name"
+                                            required
+                                            className="appearance-none relative block w-full px-4 py-3 pl-11 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+                                            placeholder="Tu Nombre"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                        />
+                                        <i className="fas fa-user absolute left-4 top-3.5 text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+                                    </div>
+                                </div>
+                                <div className="relative group">
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-hover:text-blue-600">
+                                        Correo Electrónico
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            autoComplete="email"
+                                            required
+                                            className="appearance-none relative block w-full px-4 py-3 pl-11 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+                                            placeholder="tu@ejemplo.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                        <i className="fas fa-envelope absolute left-4 top-3.5 text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+                                    </div>
+                                </div>
+                                <div className="relative group">
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-hover:text-blue-600">
+                                        Contraseña
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            required
+                                            className="appearance-none relative block w-full px-4 py-3 pl-11 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+                                            placeholder="Mínimo 6 caracteres"
+                                            value={password}
+                                            onChange={handlePasswordChange}
+                                        />
+                                        <i className="fas fa-lock absolute left-4 top-3.5 text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+                                    </div>
+                                    {password && (
+                                        <div className="mt-1.5 flex items-center justify-between">
+                                            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden mr-2">
+                                                <div className={`h-full transition-all duration-500 ${passwordStrength === 'Fuerte' ? 'w-full bg-green-500' :
+                                                    passwordStrength === 'Media' ? 'w-2/3 bg-yellow-500' : 'w-1/3 bg-red-500'
+                                                    }`}></div>
+                                            </div>
+                                            <span className={`text-xs font-semibold ${passwordStrength === 'Fuerte' ? 'text-green-600' :
+                                                passwordStrength === 'Media' ? 'text-yellow-600' : 'text-red-600'
+                                                }`}>
+                                                {passwordStrength}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="relative group">
+                                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-hover:text-blue-600">
+                                        Confirmar Contraseña
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="confirm-password"
+                                            name="confirm-password"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            required
+                                            className="appearance-none relative block w-full px-4 py-3 pl-11 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+                                            placeholder="Repite tu contraseña"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                        />
+                                        <i className="fas fa-lock absolute left-4 top-3.5 text-gray-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-cyan-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin mr-2"></i>
+                                            Registrando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-user-plus mr-2 group-hover:scale-110 transition-transform"></i>
+                                            Registrarme
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                        <div className="text-center">
+                            <p className="text-sm text-gray-600">
+                                ¿Ya tienes cuenta?{' '}
+                                <button onClick={() => onNavigate('login')} className="font-bold text-blue-600 hover:text-blue-800 transition-colors duration-200 underline decoration-2 decoration-transparent hover:decoration-blue-600">
+                                    Inicia Sesión
+                                </button>
+                            </p>
+                        </div>
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start">
+                            <i className="fas fa-info-circle text-blue-500 mt-0.5 mr-2"></i>
+                            <p className="text-xs text-blue-800">
+                                <strong>Importante:</strong> Al registrarte, recibirás un correo de verificación.
+                                Debes hacer clic en el enlace para activar tu cuenta.
+                            </p>
+                        </div>
+                    </div>
+                </AuthLayout>
+            );
+        };
+
+        // Componente ForgotPassword
+        const ForgotPassword = ({ onNavigate }) => {
+            const [email, setEmail] = useState('');
+            const [error, setError] = useState('');
+            const [success, setSuccess] = useState('');
+            const [loading, setLoading] = useState(false);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setSuccess('');
+                setLoading(true);
+                try {
+                    await auth.sendPasswordResetEmail(email);
+                    setSuccess(`Te hemos enviado un correo a ${email} para recuperarla.`);
+                } catch (err) {
+                    setError('Error: Revisa que el correo sea válido.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <AuthLayout
+                    title="Recupera tu acceso"
+                    subtitle="No te preocupes, te ayudaremos a restablecer tu contraseña rápidamente."
+                    imageSrc="/static/imagenes/disponible-variedad.jpg"
+                >
+                    <div className="w-full max-w-md mx-auto">
+                        <div className="mb-10">
+                            <button onClick={() => onNavigate('login')} className="text-gray-500 hover:text-blue-600 mb-6 flex items-center transition-colors">
+                                <i className="fas fa-arrow-left mr-2"></i> Volver a Iniciar Sesión
+                            </button>
+                            <h2 className="text-3xl font-extrabold text-gray-900">¿Olvidaste la contraseña?</h2>
+                            <p className="mt-2 text-sm text-gray-600">Ingresa tu correo y te enviaremos instrucciones.</p>
+                        </div>
+
+                        {error && <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">{error}</div>}
+                        {success && <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 font-medium">{success}</div>}
+
+                        {!success && (
+                            <form className="space-y-6" onSubmit={handleSubmit}>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                                    <input
+                                        type="email" required
+                                        className="block w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="tu@email.com"
+                                        value={email} onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full py-3.5 px-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all"
+                                >
+                                    {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </AuthLayout>
+            );
+        };
+
+        // Componente ProductList - MODIFICADO PARA USAR API
+        const ProductList = ({ addToCart }) => {
+            const [products, setProducts] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchProducts = async () => {
+                    try {
+                        const response = await fetch('/api/productos/');
+                        const data = await response.json();
+                        // Mapeo para que coincida con la estructura esperada por tu diseño
+                        const mappedProducts = (data.results || data).map(p => ({
+                            id: p.id,
+                            name: p.nombre,
+                            brand: p.marca ? p.marca.nombre : 'Genérico',
+                            price: parseFloat(p.precio_final),
+                            category: p.categoria ? p.categoria.nombre : 'General',
+                            image: p.imagen_principal || '/static/imagenes/disponible-variedad.jpg'
+                        }));
+                        setProducts(mappedProducts);
+                    } catch (error) {
+                        console.error('Error cargando productos:', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchProducts();
+            }, []);
+
+            if (loading) return (
+                <div className="flex justify-center items-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            );
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">Nuestro Catálogo de Repuestos</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {products.map(product => (
+                            <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                                <div className="p-4">
+                                    <div className="h-40 bg-gray-100 flex items-center justify-center mb-4 rounded-lg overflow-hidden">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className="max-h-full max-w-full object-contain transform hover:scale-105 transition-transform duration-300"
+                                            onError={(e) => { e.target.src = '/static/imagenes/disponible-variedad.jpg'; }}
+                                        />
+                                    </div>
+                                    <span className="text-sm font-semibold text-blue-600 block mb-1">{product.brand}</span>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight h-14 overflow-hidden">{product.name}</h3>
+                                    <div className="flex justify-between items-center mt-3">
+                                        <span className="text-xl font-bold text-gray-900">${product.price.toLocaleString('es-CL')}</span>
+                                        <button
+                                            onClick={() => addToCart(product)}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                                        >
+                                            Añadir
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // Componente ShoppingCart
+        const ShoppingCart = ({ cartItems, updateCart, onNavigate, user }) => {
+            const [paymentMethod, setPaymentMethod] = useState('mercadopago');
+            const [loading, setLoading] = useState(false);
+            const [showSuccess, setShowSuccess] = useState(false);
+            // Datos del cliente
+            const [customerData, setCustomerData] = useState({
+                firstName: '',
+                lastName: '',
+                email: user?.email || '',
+                phone: ''
+            });
+            // Dirección de entrega
+            const [shippingMethod, setShippingMethod] = useState('domicilio');
+            const [shippingAddress, setShippingAddress] = useState({
+                region: '', commune: '', street: '', number: '', receiverName: '', receiverPhone: ''
+            });
+            // Inicializar Mercado Pago
+            useEffect(() => {
+                if (!window.MercadoPago) {
+                    const script = document.createElement('script');
+                    script.src = 'https://sdk.mercadopago.com/js/v2';
+                    script.async = true;
+                    document.body.appendChild(script);
+                }
+            }, []);
+
+            const calculateTotal = () => cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const handleQuantityChange = (id, newQuantity) => {
+                if (newQuantity < 1) return;
+                updateCart(cartItems.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
+            };
+            const removeItem = (id) => updateCart(cartItems.filter(item => item.id !== id));
+            const isFormValid = () => {
+                if (!customerData.firstName || !customerData.lastName || !customerData.email || !customerData.phone) return false;
+                if (shippingMethod === 'domicilio') {
+                    return shippingAddress.region && shippingAddress.commune && shippingAddress.street && shippingAddress.number;
+                }
+                return true;
+            };
+
+            const createOrder = async (method) => {
+                const orderData = {
+                    items: cartItems.map(item => ({
+                        id: item.id,
+                        cantidad: item.quantity,
+                        precio: item.price
+                    })),
+                    cliente_nombre: customerData.firstName,
+                    cliente_apellido: customerData.lastName,
+                    cliente_email: customerData.email,
+                    cliente_telefono: customerData.phone,
+                    direccion_calle: shippingAddress.street,
+                    direccion_numero: shippingAddress.number,
+                    direccion_comuna: shippingAddress.commune,
+                    direccion_region: shippingAddress.region,
+                    metodo_pago: method,
+                    metodo_envio: shippingMethod,
+                    costo_envio: 0, // Ajustar según lógica
+                    descuento: 0
+                };
+
+                const response = await fetch('/api/ordenes/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al crear la orden');
+                }
+
+                return await response.json();
+            };
+
+            const getCookie = (name) => {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            };
+
+            const processMercadoPagoPayment = async () => {
+                if (cartItems.length === 0) {
+                    alert('El carrito está vacío.');
+                    return;
+                }
+                if (!isFormValid()) {
+                    alert('Por favor completa todos los datos personales y de envío.');
+                    return;
+                }
+                setLoading(true);
+                try {
+                    // 1. Crear Orden en DB
+                    const orden = await createOrder('mercadopago');
+
+                    // 2. Obtener Preferencia MP para esa orden
+                    const response = await fetch(`/api/ordenes/${orden.id}/pagar_mercadopago/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || JSON.stringify(errData) || 'Error al iniciar el pago');
+                    }
+
+                    const { preference_id } = await response.json();
+
+                    // 3. Abrir Checkout
+                    // 3. Abrir Checkout
+                    const mp = new MercadoPago('APP_USR-7383f204-12f1-436a-8752-30bd447a968b', { locale: 'es-CL' });
+                    mp.checkout({
+                        preference: { id: preference_id },
+                        autoOpen: true
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const processBankTransfer = async () => {
+                if (!isFormValid()) {
+                    alert('Por favor completa todos los datos.');
+                    return;
+                }
+                setLoading(true);
+                try {
+                    // 1. Crear Orden en DB
+                    const orden = await createOrder('transferencia');
+
+                    // 2. Redirigir a WhatsApp
+                    const message = `Hola, he creado la Orden #${orden.numero_orden}. Total: $${parseFloat(orden.total).toLocaleString('es-CL')}. Cliente: ${customerData.firstName} ${customerData.lastName}`;
+                    window.open(`https://wa.me/56992921908?text=${encodeURIComponent(message)}`, '_blank');
+
+                    setShowSuccess(true);
+                    updateCart([]); // Limpiar carrito localmente
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(error.message || 'Error al procesar el pedido');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (cartItems.length === 0) {
+                return (
+                    <div className="container mx-auto px-4 py-12 text-center">
+                        <div className="bg-white rounded-xl shadow-md p-8 max-w-2xl mx-auto">
+                            <i className="fas fa-shopping-cart text-5xl text-gray-300 mb-4"></i>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Tu carrito está vacío</h2>
+                            <p className="text-gray-600 mb-6">Agrega productos para continuar con tu compra</p>
+                            <button
+                                onClick={() => onNavigate('products')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                            >
+                                Ver Productos
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    {showSuccess && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-xl p-8 max-w-md text-center">
+                                <i className="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Orden recibida!</h2>
+                                <p className="text-gray-600">Revisa tu WhatsApp para confirmar el pago.</p>
+                                <button onClick={() => { setShowSuccess(false); updateCart([]); onNavigate('home'); }} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Cerrar</button>
+                            </div>
+                        </div>
+                    )}
+                    <h2 className="text-3xl font-bold text-gray-900 mb-8">Tu Carrito de Compras</h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2">
+                            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div className="divide-y divide-gray-200">
+                                    {cartItems.map(item => (
+                                        <div key={item.id} className="p-4 flex flex-col sm:flex-row">
+                                            <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-4">
+                                                <img src={item.image} alt={item.name} className="w-24 h-24 object-contain rounded" onError={(e) => { e.target.src = '/static/imagenes/disponible-variedad.jpg'; }} />
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex justify-between">
+                                                    <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                                                    <button
+                                                        onClick={() => removeItem(item.id)}
+                                                        className="text-gray-500 hover:text-red-500"
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <p className="text-gray-600 text-sm mb-2">{item.brand}</p>
+                                                <p className="text-lg font-bold text-gray-900">${item.price.toLocaleString('es-CL')}</p>
+                                                <div className="mt-4 flex items-center">
+                                                    <button
+                                                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                        className="bg-gray-200 px-3 py-1 rounded-l-md"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="bg-gray-100 px-4 py-1">{item.quantity}</span>
+                                                    <button
+                                                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                                        className="bg-gray-200 px-3 py-1 rounded-r-md"
+                                                    >
+                                                        +
+                                                    </button>
+                                                    <span className="ml-auto font-bold">
+                                                        ${(item.price * item.quantity).toLocaleString('es-CL')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">Resumen de Compra</h3>
+                                <div className="space-y-4 mb-6">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Subtotal</span>
+                                        <span className="font-medium">${calculateTotal().toLocaleString('es-CL')}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Envío</span>
+                                        <span className="font-medium">Gratis</span>
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-4 flex justify-between">
+                                        <span className="text-lg font-bold text-gray-900">Total</span>
+                                        <span className="text-lg font-bold text-blue-600">${calculateTotal().toLocaleString('es-CL')}</span>
+                                    </div>
+                                </div>
+                                <form className="mb-6">
+                                    <h4 className="font-medium text-gray-900 mb-3">Datos Personales</h4>
+                                    <div className="space-y-3">
+                                        <input type="text" placeholder="Nombre" value={customerData.firstName} onChange={e => setCustomerData({ ...customerData, firstName: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <input type="text" placeholder="Apellido" value={customerData.lastName} onChange={e => setCustomerData({ ...customerData, lastName: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <input type="email" placeholder="Email" value={customerData.email} onChange={e => setCustomerData({ ...customerData, email: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <input type="tel" placeholder="Teléfono" value={customerData.phone} onChange={e => setCustomerData({ ...customerData, phone: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                    </div>
+                                </form>
+                                <form className="mb-6">
+                                    <h4 className="font-medium text-gray-900 mb-3">Datos de Envío</h4>
+                                    <div className="space-y-3">
+                                        <input type="text" placeholder="Calle" value={shippingAddress.street} onChange={e => setShippingAddress({ ...shippingAddress, street: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <div className="flex space-x-2">
+                                            <input type="text" placeholder="Número" value={shippingAddress.number} onChange={e => setShippingAddress({ ...shippingAddress, number: e.target.value })} className="w-1/3 border p-2 rounded" />
+                                            <input type="text" placeholder="Depto (Opcional)" className="w-2/3 border p-2 rounded" />
+                                        </div>
+                                        <input type="text" placeholder="Comuna" value={shippingAddress.commune} onChange={e => setShippingAddress({ ...shippingAddress, commune: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <input type="text" placeholder="Región" value={shippingAddress.region} onChange={e => setShippingAddress({ ...shippingAddress, region: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                    </div>
+                                </form>
+                                <h4 className="font-medium text-gray-900 mb-3">Método de Pago</h4>
+                                <div className="space-y-3">
+                                    <label className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${paymentMethod === 'mercadopago' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                        <input type="radio" checked={paymentMethod === 'mercadopago'} onChange={() => setPaymentMethod('mercadopago')} className="mr-3" />
+                                        <div className="flex items-center">
+                                            <i className="fas fa-credit-card text-blue-500 text-xl mr-2"></i>
+                                            <span className="font-medium">Mercado Pago</span>
+                                        </div>
+                                    </label>
+                                    <label className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${paymentMethod === 'transferencia' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                        <input type="radio" checked={paymentMethod === 'transferencia'} onChange={() => setPaymentMethod('transferencia')} className="mr-3" />
+                                        <div className="flex items-center">
+                                            <i className="fas fa-university text-green-600 text-xl mr-2"></i>
+                                            <span className="font-medium">Transferencia Bancaria</span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {paymentMethod === 'mercadopago' ?
+                                    <button onClick={processMercadoPagoPayment} disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded">{loading ? 'Procesando...' : 'Pagar'}</button> :
+                                    <button onClick={processBankTransfer} disabled={loading} className="w-full bg-green-600 text-white py-3 rounded">Confirmar Transferencia</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            );
+        };
+
+        // 2. CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIQR_CZrsp9IQyM8uS_Etrcyjs4yv-7F8",
+            authDomain: "autopartes-pro.firebaseapp.com",
+            projectId: "autopartes-pro",
+            storageBucket: "autopartes-pro.firebasestorage.app",
+            messagingSenderId: "716724882226",
+            appId: "1:716724882226:web:408d6fc203df36cfb9652b",
+            measurementId: "G-Q4EKDTGRME"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 3. COMPONENTE PRINCIPAL APP
+        const App = () => {
+            const getInitialView = () => {
+                const hash = window.location.hash.replace('#', '');
+                const allowed = new Set(['home', 'products', 'about', 'contact', 'login', 'register', 'cart', 'forgot-password']);
+                return allowed.has(hash) ? hash : 'home';
+            };
+            const [currentView, setCurrentView] = useState(getInitialView());
+            const [cartItems, setCartItems] = useState([]);
+            const [user, setUser] = useState(null);
+
+            useEffect(() => {
+                const onPop = () => setCurrentView(window.location.hash.slice(1) || 'home');
+                window.addEventListener('popstate', onPop);
+                return () => window.removeEventListener('popstate', onPop);
+            }, []);
+
+            const handleNavigate = (view) => {
+                if (view === currentView) return;
+                setCurrentView(view);
+                window.history.pushState({ view }, "", `#${view}`);
+                window.scrollTo(0, 0);
+            };
+            const addToCart = (product) => {
+                setCartItems(prev => {
+                    const exists = prev.find(item => item.id === product.id);
+                    if (exists) return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+                    return [...prev, { ...product, quantity: 1 }];
+                });
+            };
+            const updateCart = (newCart) => setCartItems(newCart);
+            const handleLogin = () => setUser(auth.currentUser);
+
+            useEffect(() => auth.onAuthStateChanged(setUser), []);
+
+            return (
+                <div className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
+                    {currentView !== 'login' && currentView !== 'register' && currentView !== 'forgot-password' && (
+                        <LayoutHeader onNavigate={handleNavigate} currentView={currentView} cartItemCount={cartItems.reduce((a, b) => a + b.quantity, 0)} user={user} />
+                    )}
+                    <main className="flex-grow">
+                        {currentView === 'home' && <><HomeHeroSection onNavigate={handleNavigate} /><HomeFeatures /></>}
+                        {currentView === 'products' && <ProductList addToCart={addToCart} />}
+                        {currentView === 'about' && <AboutUs />}
+                        {currentView === 'contact' && <Contact />}
+                        {currentView === 'login' && <Login onNavigate={handleNavigate} onLogin={handleLogin} />}
+                        {currentView === 'register' && <Register onNavigate={handleNavigate} onLogin={handleLogin} />}
+                        {currentView === 'forgot-password' && <ForgotPassword onNavigate={handleNavigate} />}
+                        {currentView === 'cart' && <ShoppingCart cartItems={cartItems} updateCart={updateCart} onNavigate={handleNavigate} user={user} />}
+                    </main>
+                    {currentView !== 'login' && currentView !== 'register' && currentView !== 'forgot-password' && (
+                        <React.Fragment>
+                            <footer className="bg-gray-800 text-white py-12 mt-12">
+                                <div className="container mx-auto px-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                                        <div>
+                                            <h3 className="text-lg font-bold mb-4">AutoPartes Pro</h3>
+                                            <p className="text-gray-300 text-sm">
+                                                Tu tienda de confianza para repuestos de automóvil. Calidad garantizada y precios competitivos.
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-md font-semibold mb-4">Enlaces Rápidos</h4>
+                                            <ul className="space-y-2 text-sm">
+                                                <li><button onClick={() => handleNavigate('home')} className="text-gray-300 hover:text-white">Inicio</button></li>
+                                                <li><button onClick={() => handleNavigate('products')} className="text-gray-300 hover:text-white">Productos</button></li>
+                                                <li><button onClick={() => handleNavigate('about')} className="text-gray-300 hover:text-white">Nosotros</button></li>
+                                                <li><button onClick={() => handleNavigate('contact')} className="text-gray-300 hover:text-white">Contacto</button></li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-md font-semibold mb-4">Contacto</h4>
+                                            <ul className="space-y-2 text-sm text-gray-300">
+                                                <li><i className="fas fa-map-marker-alt mr-2"></i>Avenida General San Martin 181</li>
+                                                <li><i className="fas fa-phone mr-2"></i>+56 9 9292 1908</li>
+                                                <li><i className="fas fa-envelope mr-2"></i>cesar.suarez.garrido@gmail.com</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-md font-semibold mb-4">Síguenos</h4>
+                                            <div className="flex space-x-4">
+                                                <a href="https://wa.me/56992921908" className="text-gray-300 hover:text-white text-xl">
+                                                    <i className="fab fa-whatsapp"></i>
+                                                </a>
+                                                <a href="#" className="text-gray-300 hover:text-white text-xl">
+                                                    <i className="fab fa-facebook"></i>
+                                                </a>
+                                                <a href="#" className="text-gray-300 hover:text-white text-xl">
+                                                    <i className="fab fa-instagram"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                                        <p>&copy; {new Date().getFullYear()} AutoPartes Pro. Todos los derechos reservados.</p>
+                                    </div>
+                                </div>
+                            </footer>
+                            {/* Security Trust Badge */}
+                            <div className="bg-gray-900 text-center py-2 border-t border-gray-800">
+                                <div className="container mx-auto px-4 flex justify-center items-center space-x-4 text-xs text-gray-500">
+                                    <span className="flex items-center"><i className="fas fa-lock text-green-500 mr-2"></i>Pago Seguro SSL</span>
+                                    <span className="flex items-center"><i className="fas fa-shield-alt text-blue-500 mr-2"></i>Datos Protegidos</span>
+                                    <span className="flex items-center"><i className="fas fa-check-circle text-purple-500 mr-2"></i>Garantía de Satisfacción</span>
+                                </div>
+                            </div>
+                        </React.Fragment>
+                    )}
+                </div>
+            );
+        };
+
+        // Error Boundary
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false };
+            }
+            static getDerivedStateFromError() { return { hasError: true }; }
+            componentDidCatch(error, errorInfo) { console.error("Error:", error, errorInfo); }
+            render() {
+                if (this.state.hasError) return <div className="p-8 text-red-600"><h1>Error</h1></div>;
+                return this.props.children;
+            }
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<React.StrictMode><ErrorBoundary><App /></ErrorBoundary></React.StrictMode>);
+        {% endverbatim %}
+    </script>
+</body>
+
+</html>
