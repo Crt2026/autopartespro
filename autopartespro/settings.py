@@ -66,6 +66,8 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+
 ROOT_URLCONF = 'autopartespro.urls'
 
 TEMPLATES = [
@@ -93,7 +95,7 @@ import dj_database_url
 # Database
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL')
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}'
     )
 }
 
