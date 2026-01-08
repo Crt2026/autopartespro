@@ -12,8 +12,10 @@ if User.objects.filter(username="admin").exists():
     admin.set_password("admin123")
     admin.is_staff = True
     admin.is_superuser = True
+    admin.is_active = True
+    admin.bloqueado_hasta = None
     admin.save()
-    print("🔁 Admin actualizado")
+    print("🔁 Admin actualizado y desbloqueado")
 else:
     User.objects.create_superuser("admin", "admin@email.com", "admin123")
     print("✅ Admin creado")
