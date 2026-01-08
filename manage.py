@@ -5,6 +5,15 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    
+    
+    # Importar PyMySQL y usarlo como MySQLdb inmediatamente
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except ImportError:
+        pass
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'autopartespro.settings')
     
     # Patch MySQL

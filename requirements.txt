@@ -4,9 +4,9 @@ whitenoise
 psycopg2-binary
 python-decouple
 dj-database-url
-django-jazzmin
-djangorestframework
+django-jazzmin==2.6.0
+djangorestframework==3.14.0
 django-cors-headers
-django-filter
+django-filter==23.5
 drf-yasg
 mercadopago

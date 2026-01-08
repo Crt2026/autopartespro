@@ -90,12 +90,10 @@ WSGI_APPLICATION = 'autopartespro.wsgi.application'
 
 # Database
 import dj_database_url
-
+# Database
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600,
-        ssl_require=False
+        default=config('DATABASE_URL')
     )
 }
 
@@ -128,7 +126,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'web/static',
