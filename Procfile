@@ -1,1 +1,1 @@
-web: gunicorn autopartespro.wsgi --log-file -
+web: python create_admin.py && gunicorn autopartespro.wsgi --log-file -
