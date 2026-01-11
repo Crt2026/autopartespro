@@ -1130,16 +1130,21 @@
         // 3. COMPONENTE PRINCIPAL APP
         const App = () => {
             const getInitialView = () => {
-                const hash = window.location.hash.replace('#', '');
+                const path = window.location.pathname.replace('/', '');
                 const allowed = new Set(['home', 'products', 'about', 'contact', 'login', 'register', 'cart', 'forgot-password']);
-                return allowed.has(hash) ? hash : 'home';
+                if (path === '' || path === '/') return 'home';
+                // Handle sub-routes or fallback
+                return allowed.has(path) ? path : 'home';
             };
             const [currentView, setCurrentView] = useState(getInitialView());
             const [cartItems, setCartItems] = useState([]);
             const [user, setUser] = useState(null);
 
             useEffect(() => {
-                const onPop = () => setCurrentView(window.location.hash.slice(1) || 'home');
+                const onPop = () => {
+                    const path = window.location.pathname.replace('/', '');
+                    setCurrentView(path || 'home');
+                };
                 window.addEventListener('popstate', onPop);
                 return () => window.removeEventListener('popstate', onPop);
             }, []);
@@ -1147,7 +1152,9 @@
             const handleNavigate = (view) => {
                 if (view === currentView) return;
                 setCurrentView(view);
-                window.history.pushState({ view }, "", `#${view}`);
+                // Map 'home' to root '/'
+                const path = view === 'home' ? '/' : `/${view}`;
+                window.history.pushState({ view }, "", path);
                 window.scrollTo(0, 0);
             };
             const addToCart = (product) => {
