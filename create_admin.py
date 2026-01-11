@@ -16,9 +16,16 @@ if User.objects.filter(username="admin").exists():
     admin.save()
     print("🔁 Admin actualizado")
 else:
-    User.objects.create_superuser(
-        username="admin",
-        email="admin@email.com",
-        password="admin123"
-    )
-    print("✅ Admin creado")
+    try:
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@email.com",
+            password="admin123",
+            telefono="",
+            direccion="",
+            comuna="",
+            region=""
+        )
+        print("✅ Admin creado")
+    except Exception as e:
+        print(f"❌ Error creando admin: {e}")
