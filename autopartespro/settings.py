@@ -61,6 +61,9 @@ MIDDLEWARE = [
 ]
 
 # Security Settings
+# Need this for Railway to detect HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Only apply these if the environment variable 'SECURE_SSL_REDIRECT' is True
 # This prevents breaking local development where HTTPS might not be set up.
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
