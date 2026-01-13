@@ -44,6 +44,9 @@ urlpatterns = [
 
     # Sitemap
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    
+    # Web App Routes (Home, Products, etc.)
+    path('', include('web.urls')),
 ]
 
 # Servir archivos estáticos y media en desarrollo

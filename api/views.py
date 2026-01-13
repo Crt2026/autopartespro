@@ -262,7 +262,8 @@ class OrdenViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Validate stock first
+        # Validate stock and filter available items
+        valid_items_data = []
         for item in items_data:
             try:
                 prod_id = item.get('id')
@@ -273,15 +274,23 @@ class OrdenViewSet(viewsets.ModelViewSet):
                         {'error': f'Stock insuficiente para {producto.nombre} (Disponible: {producto.stock})'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+                valid_items_data.append(item)
             except Producto.DoesNotExist:
-                 return Response({'error': f'Producto ID {prod_id} no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+                # Skip items that don't exist
+                continue
+
+        if not valid_items_data:
+             return Response(
+                {'error': 'No hay productos válidos para procesar la orden'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Create Order
         try:
-            # Calculate totals
+            # Calculate totals for valid items
             subtotal = sum( 
                 Decimal(str(item.get('precio'))) * int(item.get('cantidad', 1)) 
-                for item in items_data 
+                for item in valid_items_data 
             )
             costo_envio = Decimal(str(datos.get('costo_envio', 0)))
             descuento = Decimal(str(datos.get('descuento', 0)))
@@ -315,7 +324,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
             )
             
             # Create Order Details
-            for item in items_data:
+            for item in valid_items_data:
                 prod = Producto.objects.get(id=item.get('id'))
                 DetalleOrden.objects.create(
                     orden=orden,
@@ -347,7 +356,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
         # Force localhost for local development to satisfy MP validation
         # base_url = "http://127.0.0.1:8000"
         # base_url = "https://www.google.com/search?q=autopartespro"
-        base_url = "https://warm-ravine-05041-2e52a6996500.herokuapp.com"
+        base_url = settings.SITE_URL
         
         preference_data = {
             "items": [
@@ -366,9 +375,9 @@ class OrdenViewSet(viewsets.ModelViewSet):
                 "email": orden.cliente_email
             },
             "back_urls": {
-                "success": "https://warm-ravine-05041-2e52a6996500.herokuapp.com/?status=success",
-                "failure": "https://warm-ravine-05041-2e52a6996500.herokuapp.com/?status=failure",
-                "pending": "https://warm-ravine-05041-2e52a6996500.herokuapp.com/?status=pending"
+                "success": f"{base_url}/pago/exitoso/?orden={orden.id}",
+                "failure": f"{base_url}/pago/fallido/",
+                "pending": f"{base_url}/pago/pendiente/"
             },
             "auto_return": "approved",
             "binary_mode": True,

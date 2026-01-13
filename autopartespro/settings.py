@@ -191,6 +191,9 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
 
+# Site URL for callbacks
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 # Jazzmin Settings
 JAZZMIN_SETTINGS = {
     "site_title": "AutoPartes Pro",

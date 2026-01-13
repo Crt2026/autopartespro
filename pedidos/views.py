@@ -7,6 +7,7 @@ import json
 import mercadopago
 from .models import Orden, DetalleOrden
 from productos.models import Producto
+from django.conf import settings
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcesarPagoAPIView(APIView):
@@ -47,7 +48,7 @@ class ProcesarPagoAPIView(APIView):
                     pass
             
             # 3. Create MP Preference
-            sdk = mercadopago.SDK("APP_USR-e72d1962-1a6f-4a72-aa69-479b0c87a62f")
+            sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
             
             preference_data = {
                 "items": mp_items,
@@ -57,9 +58,9 @@ class ProcesarPagoAPIView(APIView):
                     "email": data.get('cliente', {}).get('email', 'test@user.com'),
                 },
                 "back_urls": {
-                    "success": f"http://localhost:8000/pago/exitoso/?orden={orden.id}",
-                    "failure": f"http://localhost:8000/pago/fallido/",
-                    "pending": f"http://localhost:8000/pago/pendiente/"
+                    "success": f"{settings.SITE_URL}/pago/exitoso/?orden={orden.id}",
+                    "failure": f"{settings.SITE_URL}/pago/fallido/",
+                    "pending": f"{settings.SITE_URL}/pago/pendiente/"
                 },
                 "auto_return": "approved",
                 "external_reference": str(orden.id)
