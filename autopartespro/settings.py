@@ -192,7 +192,16 @@ MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
 
 # Site URL for callbacks
-SITE_URL = config('SITE_URL', default='http://localhost:8000')
+RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='')
+if RAILWAY_PUBLIC_DOMAIN:
+    SITE_URL = f"https://{RAILWAY_PUBLIC_DOMAIN}"
+else:
+    SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
+# Update CSRF and CORS to trust the site URL
+if SITE_URL != 'http://localhost:8000':
+    CSRF_TRUSTED_ORIGINS = [SITE_URL]
+    CORS_ALLOWED_ORIGINS.append(SITE_URL)
 
 # Jazzmin Settings
 JAZZMIN_SETTINGS = {
