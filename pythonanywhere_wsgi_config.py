@@ -1,7 +1,7 @@
 import os
 import sys
 
-path = '/home/crt2026/autopartespro'
+path = '/home/AutoPartesPro/autopartespro'
 if path not in sys.path:
     sys.path.append(path)
 

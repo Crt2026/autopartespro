@@ -18,7 +18,8 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-tu-clave-secreta-aqui
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'crt2026.pythonanywhere.com'
+    'autopartespro.pythonanywhere.com',
+    'AutoPartesPro.pythonanywhere.com'
 ]
 
 # Application definition
