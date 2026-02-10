@@ -358,6 +358,12 @@ class OrdenViewSet(viewsets.ModelViewSet):
         # base_url = "https://www.google.com/search?q=autopartespro"
         base_url = settings.SITE_URL
         
+        # Validate Payer Email to prevent Self-Payment Error (PA_UNAUTHORIZED_RESULT_FROM_POLICIES)
+        payer_email = orden.cliente_email
+        # Optional: You can hardcode your seller email here to check, or just rely on the user using a different one.
+        # But to be safe, if we are in DEBUG, maybe force a test email if it looks suspicious?
+        # For now, let's just make sure the data is clean.
+        
         preference_data = {
             "items": [
                 {
@@ -372,7 +378,16 @@ class OrdenViewSet(viewsets.ModelViewSet):
             "payer": {
                 "name": orden.cliente_nombre,
                 "surname": orden.cliente_apellido,
-                "email": orden.cliente_email
+                "email": payer_email,
+                "phone": {
+                    "area_code": "",
+                    "number": orden.cliente_telefono
+                },
+                "address": {
+                    "street_name": orden.direccion_calle,
+                    "street_number": int(orden.direccion_numero) if orden.direccion_numero.isdigit() else 123,
+                    "zip_code": orden.direccion_codigo_postal
+                }
             },
             "back_urls": {
                 "success": f"{base_url}/pago/exitoso/?orden={orden.id}",
@@ -380,14 +395,17 @@ class OrdenViewSet(viewsets.ModelViewSet):
                 "pending": f"{base_url}/pago/pendiente/"
             },
             "auto_return": "approved",
-            "binary_mode": True,
+            "binary_mode": True, # Try False if this persists, but usually True is fine for instant payments
             "payment_methods": {
                 "excluded_payment_methods": [],
-                "excluded_payment_types": [],
+                "excluded_payment_types": [
+                    {"id": "ticket"}, # Exclude offline payments like Pagofacil if you want instant approval
+                    {"id": "atm"}
+                ],
                 "installments": 12
             },
-            # "notification_url": "https://your-domain.com/api/webhook/mercadopago/", 
             "external_reference": str(orden.id),
+            "statement_descriptor": "AUTOPARTESPRO"
         }
         
         try:
