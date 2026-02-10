@@ -227,7 +227,8 @@ elif config('render', default=False, cast=bool): # Example check, adjust if need
     SITE_URL = config('Render_EXTERNAL_URL', default='https://autopartespro.pythonanywhere.com')
 else:
     # Default to PythonAnywhere in production if not overridden
-    if not DEBUG:
+    # Check if we are running on PythonAnywhere by checking the path or hostname
+    if 'home/AutoPartesPro' in str(BASE_DIR) or not DEBUG:
          SITE_URL = f"https://{PYTHONANYWHERE_DOMAIN}"
     else:
          SITE_URL = config('SITE_URL', default='http://localhost:8000')

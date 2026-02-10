@@ -924,7 +924,10 @@
 
                     if (!response.ok) {
                         const errData = await response.json();
-                        throw new Error(errData.error || JSON.stringify(errData) || 'Error al iniciar el pago');
+                        console.error('Error info:', errData);
+                        const errorMsg = errData.error || 'Error al iniciar el pago';
+                        const errorDetails = errData.details ? `\nDetalles: ${JSON.stringify(errData.details, null, 2)}` : '';
+                        throw new Error(`${errorMsg}${errorDetails}`);
                     }
 
                     const { preference_id } = await response.json();
