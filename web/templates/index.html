@@ -814,6 +814,7 @@
             const [customerData, setCustomerData] = useState({
                 firstName: '',
                 lastName: '',
+                rut: '',
                 email: user?.email || '',
                 phone: ''
             });
@@ -822,6 +823,7 @@
             const [shippingAddress, setShippingAddress] = useState({
                 region: '', commune: '', street: '', number: '', receiverName: '', receiverPhone: ''
             });
+
             // Inicializar Mercado Pago
             useEffect(() => {
                 if (!window.MercadoPago) {
@@ -839,7 +841,7 @@
             };
             const removeItem = (id) => updateCart(cartItems.filter(item => item.id !== id));
             const isFormValid = () => {
-                if (!customerData.firstName || !customerData.lastName || !customerData.email || !customerData.phone) return false;
+                if (!customerData.firstName || !customerData.lastName || !customerData.rut || !customerData.email || !customerData.phone) return false;
                 if (shippingMethod === 'domicilio') {
                     return shippingAddress.region && shippingAddress.commune && shippingAddress.street && shippingAddress.number;
                 }
@@ -855,6 +857,7 @@
                     })),
                     cliente_nombre: customerData.firstName,
                     cliente_apellido: customerData.lastName,
+                    cliente_rut: customerData.rut,
                     cliente_email: customerData.email,
                     cliente_telefono: customerData.phone,
                     direccion_calle: shippingAddress.street,
@@ -1070,6 +1073,7 @@
                                     <div className="space-y-3">
                                         <input type="text" placeholder="Nombre" value={customerData.firstName} onChange={e => setCustomerData({ ...customerData, firstName: e.target.value })} className="w-full border p-2 mb-2 rounded" />
                                         <input type="text" placeholder="Apellido" value={customerData.lastName} onChange={e => setCustomerData({ ...customerData, lastName: e.target.value })} className="w-full border p-2 mb-2 rounded" />
+                                        <input type="text" placeholder="RUT (ej: 12.345.678-9)" value={customerData.rut} onChange={e => setCustomerData({ ...customerData, rut: e.target.value })} className="w-full border p-2 mb-2 rounded" />
                                         <input type="email" placeholder="Email" value={customerData.email} onChange={e => setCustomerData({ ...customerData, email: e.target.value })} className="w-full border p-2 mb-2 rounded" />
                                         <input type="tel" placeholder="Teléfono" value={customerData.phone} onChange={e => setCustomerData({ ...customerData, phone: e.target.value })} className="w-full border p-2 mb-2 rounded" />
                                     </div>

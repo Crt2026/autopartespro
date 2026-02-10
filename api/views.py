@@ -383,6 +383,10 @@ class OrdenViewSet(viewsets.ModelViewSet):
                     "area_code": "",
                     "number": orden.cliente_telefono
                 },
+                "identification": {
+                    "type": "RUT",
+                    "number": orden.cliente_rut
+                },
                 "address": {
                     "street_name": orden.direccion_calle,
                     "street_number": int(orden.direccion_numero) if orden.direccion_numero.isdigit() else 123,
