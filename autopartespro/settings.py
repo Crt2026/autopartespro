@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
+    'axes',
     
     # Third party apps
     'rest_framework',
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     'api.admin_middleware.RestrictAdminMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 # Security Settings
@@ -78,6 +80,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+
+# Axes Configuration
+AXES_FAILURE_LIMIT = 3
+AXES_COOLOFF_TIME = 1 # Hours
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = None # Or a custom template
 
 ROOT_URLCONF = 'autopartespro.urls'
 
@@ -140,6 +148,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend', # Axes Backend
     'usuarios.authentication.SecurityValuesBackend', # Custom Check
     'django.contrib.auth.backends.ModelBackend',     # Default
 ]

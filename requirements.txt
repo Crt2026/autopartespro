@@ -10,3 +10,4 @@ django-cors-headers
 django-filter==23.5
 drf-yasg
 mercadopago
+django-axes

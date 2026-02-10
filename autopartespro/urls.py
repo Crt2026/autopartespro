@@ -30,10 +30,8 @@ sitemaps = {
 }
 
 urlpatterns = [
-    # Admin Redirect (Fix for no trailing slash)
-    path('admin', RedirectView.as_view(url='/admin/', permanent=True)),
-    # Admin
-    path('admin/', admin.site.urls),
+    # Secret Admin
+    path('acceso-seguro/', admin.site.urls),
     
     # API
     path('api/', include('api.urls')),
