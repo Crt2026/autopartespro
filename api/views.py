@@ -391,13 +391,14 @@ class OrdenViewSet(viewsets.ModelViewSet):
         }
         
         try:
+            print(f"Creating Preference with data: {preference_data}")
             preference_response = sdk.preference().create(preference_data)
-            print("MP Response:", preference_response)
+            print(f"MP Response: {preference_response}")
             
             if preference_response.get("status") not in [200, 201]:
-                 error_detail = preference_response.get("response")
-                 with open('mp_error.log', 'w') as f:
-                     f.write(str(error_detail))
+                 error_detail = preference_response.get("response", {})
+                 # Log full error to console for PythonAnywhere logs
+                 print(f"ERROR MERCADO PAGO: {error_detail}") 
                  return Response(
                     {'error': 'Error Mercado Pago', 'details': error_detail},
                     status=status.HTTP_400_BAD_REQUEST

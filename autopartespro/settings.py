@@ -217,15 +217,24 @@ MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
 
 # Site URL for callbacks
+# Site URL for callbacks
 RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='')
+PYTHONANYWHERE_DOMAIN = 'autopartespro.pythonanywhere.com'
+
 if RAILWAY_PUBLIC_DOMAIN:
     SITE_URL = f"https://{RAILWAY_PUBLIC_DOMAIN}"
+elif config('render', default=False, cast=bool): # Example check, adjust if needed
+    SITE_URL = config('Render_EXTERNAL_URL', default='https://autopartespro.pythonanywhere.com')
 else:
-    SITE_URL = config('SITE_URL', default='http://localhost:8000')
+    # Default to PythonAnywhere in production if not overridden
+    if not DEBUG:
+         SITE_URL = f"https://{PYTHONANYWHERE_DOMAIN}"
+    else:
+         SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
 # Update CSRF and CORS to trust the site URL
 if SITE_URL != 'http://localhost:8000':
-    CSRF_TRUSTED_ORIGINS = [SITE_URL]
+    CSRF_TRUSTED_ORIGINS.append(SITE_URL)
     CORS_ALLOWED_ORIGINS.append(SITE_URL)
 
 # Jazzmin Settings
