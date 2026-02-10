@@ -364,6 +364,15 @@ class OrdenViewSet(viewsets.ModelViewSet):
         # But to be safe, if we are in DEBUG, maybe force a test email if it looks suspicious?
         # For now, let's just make sure the data is clean.
         
+        # Clean RUT: Remove dots and hyphens
+        import re
+        raw_rut = orden.cliente_rut or ""
+        clean_rut = re.sub(r'[^0-9kK]', '', raw_rut) # Keep numbers and K
+        
+        # Clean Phone
+        raw_phone = orden.cliente_telefono or ""
+        clean_phone = re.sub(r'[^0-9]', '', raw_phone)
+
         preference_data = {
             "items": [
                 {
@@ -381,11 +390,11 @@ class OrdenViewSet(viewsets.ModelViewSet):
                 "email": payer_email,
                 "phone": {
                     "area_code": "",
-                    "number": orden.cliente_telefono
+                    "number": clean_phone
                 },
                 "identification": {
                     "type": "RUT",
-                    "number": orden.cliente_rut
+                    "number": clean_rut
                 },
                 "address": {
                     "street_name": orden.direccion_calle,
@@ -399,7 +408,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
                 "pending": f"{base_url}/pago/pendiente/"
             },
             "auto_return": "approved",
-            "binary_mode": True, # Try False if this persists, but usually True is fine for instant payments
+            "binary_mode": False, # Changed to False to be less strict
             "payment_methods": {
                 "excluded_payment_methods": [],
                 "excluded_payment_types": [
