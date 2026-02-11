@@ -213,8 +213,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 # Mercado Pago configuration
-MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
-MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
+MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='APP_USR-5121172436691029-122522-f9be1f8e71b3035871cba14be1ab4521-2914738060')
+MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='APP_USR-fe52e8fd-10f8-448d-946d-100bd8e1f96f')
 
 # Site URL for callbacks
 # Site URL for callbacks
