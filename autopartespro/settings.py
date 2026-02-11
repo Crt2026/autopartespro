@@ -79,7 +79,7 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+
 
 # Axes Configuration
 AXES_FAILURE_LIMIT = 3
@@ -217,21 +217,14 @@ MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='APP_USR-5
 MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='APP_USR-fe52e8fd-10f8-448d-946d-100bd8e1f96f')
 
 # Site URL for callbacks
-# Site URL for callbacks
-RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='')
-PYTHONANYWHERE_DOMAIN = 'autopartespro.pythonanywhere.com'
+SITE_URL = 'https://autopartespro.pythonanywhere.com'
+if DEBUG:
+    SITE_URL = 'http://127.0.0.1:8000'
 
-if RAILWAY_PUBLIC_DOMAIN:
-    SITE_URL = f"https://{RAILWAY_PUBLIC_DOMAIN}"
-elif config('render', default=False, cast=bool): # Example check, adjust if needed
-    SITE_URL = config('Render_EXTERNAL_URL', default='https://autopartespro.pythonanywhere.com')
-else:
-    # Default to PythonAnywhere in production if not overridden
-    # Check if we are running on PythonAnywhere by checking the path or hostname
-    if 'home/AutoPartesPro' in str(BASE_DIR) or not DEBUG:
-         SITE_URL = f"https://{PYTHONANYWHERE_DOMAIN}"
-    else:
-         SITE_URL = config('SITE_URL', default='http://localhost:8000')
+CSRF_TRUSTED_ORIGINS = [
+    'https://autopartespro.pythonanywhere.com',
+    'https://www.autopartespro.pythonanywhere.com',
+]
 
 # Update CSRF and CORS to trust the site URL
 if SITE_URL != 'http://localhost:8000':
